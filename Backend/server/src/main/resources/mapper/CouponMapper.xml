@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mzhl.mapper.CouponMapper">
+
+    <insert id="insert" parameterType="com.mzhl.entity.Coupon" 
+            useGeneratedKeys="true" keyProperty="id">
+        insert into coupon (
+            `name`, `type`, `discount_type`, `specific`,
+            `discount_value`, `threshold_amount`, `max_discount_amount`,
+            `obtain_way`, `issue_begin_time`, `issue_end_time`,
+            `term_days`, `term_begin_time`, `term_end_time`,
+            `status`, `total_num`, `issue_num`, `used_num`, `user_limit`,
+            `ext_param`, `create_time`, `update_time`, `creator`, `updater`
+        )
+        values (
+            #{name}, #{type}, #{discountType}, #{specific},
+            #{discountValue}, #{thresholdAmount}, #{maxDiscountAmount},
+            #{obtainWay}, #{issueBeginTime}, #{issueEndTime},
+            #{termDays}, #{termBeginTime}, #{termEndTime},
+            #{status}, #{totalNum}, #{issueNum}, #{usedNum}, #{userLimit},
+            #{extParam}, #{createTime}, #{updateTime}, #{creator}, #{updater}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.mzhl.entity.Coupon">
+        update coupon
+        <set>
+            <if test="name != null">`name` = #{name},</if>
+            <if test="type != null">`type` = #{type},</if>
+            <if test="discountType != null">`discount_type` = #{discountType},</if>
+            <if test="specific != null">`specific` = #{specific},</if>
+            <if test="discountValue != null">`discount_value` = #{discountValue},</if>
+            <if test="thresholdAmount != null">`threshold_amount` = #{thresholdAmount},</if>
+            <if test="maxDiscountAmount != null">`max_discount_amount` = #{maxDiscountAmount},</if>
+            <if test="obtainWay != null">`obtain_way` = #{obtainWay},</if>
+            <if test="issueBeginTime != null">`issue_begin_time` = #{issueBeginTime},</if>
+            <if test="issueEndTime != null">`issue_end_time` = #{issueEndTime},</if>
+            <if test="termDays != null">`term_days` = #{termDays},</if>
+            <if test="termBeginTime != null">`term_begin_time` = #{termBeginTime},</if>
+            <if test="termEndTime != null">`term_end_time` = #{termEndTime},</if>
+            <if test="status != null">`status` = #{status},</if>
+            <if test="totalNum != null">`total_num` = #{totalNum},</if>
+            <if test="issueNum != null">`issue_num` = #{issueNum},</if>
+            <if test="usedNum != null">`used_num` = #{usedNum},</if>
+            <if test="userLimit != null">`user_limit` = #{userLimit},</if>
+            <if test="extParam != null">`ext_param` = #{extParam},</if>
+            <if test="updateTime != null">`update_time` = #{updateTime},</if>
+            <if test="updater != null">`updater` = #{updater},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="pageQuery" resultType="com.mzhl.entity.Coupon">
+        select * from coupon
+        <where>
+            <if test="name != null and name != ''">
+                and `name` like concat('%', #{name}, '%')
+            </if>
+            <if test="status != null">
+                and `status` = #{status}
+            </if>
+        </where>
+        order by `create_time` desc
+    </select>
+
+    <select id="findActiveCoupons" resultType="com.mzhl.entity.Coupon">
+        select * from coupon
+        where `status` = 1
+        order by `create_time` desc
+    </select>
+
+    <update id="deleteByIds">
+        update coupon
+        set `status` = 2, `update_time` = now()
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>
+
+

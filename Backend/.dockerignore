@@ -1,0 +1,10 @@
+# 构建上下文瘦身：这些内容不需要进镜像
+target/
+**/target/
+.idea/
+.vscode/
+*.iml
+*.log
+.git/
+.gitignore
+certs/

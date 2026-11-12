@@ -1,0 +1,34 @@
+﻿# build artifacts
+target/
+*.class
+*.jar
+*.log
+.DS_Store
+.idea/
+*.iml
+.vscode/
+node_modules/
+dist/
+build/
+tsconfig.tsbuildinfo
+tsconfig.node.tsbuildinfo
+
+# secrets / local config (see application-dev.yml.example)
+Backend/server/src/main/resources/application-dev.yml
+.env
+
+# local test scratch files
+code_req.json
+login_body.json
+resp_acc.json
+resp_refresh.json
+
+# machine-specific helper (points at local temp log path)
+view-backend-log.bat
+
+# docker runtime
+deploy/mysql-data/
+
+# build snapshot dirs
+.final-admin/
+.final-user/

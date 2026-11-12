@@ -1,0 +1,68 @@
+# ============================================================
+# 本地开发配置模板
+# 复制为 application-dev.yml 后填入你自己的真实凭证。
+# application-dev.yml 已被 .gitignore 排除，切勿把真实密钥提交到仓库。
+# ============================================================
+
+spring:
+  datasource:
+    druid:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://localhost:3306/coffee?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+      username: root
+      password: your-mysql-password
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 10
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    listener:
+      simple:
+        prefetch: 1
+        concurrency: 3
+        max-concurrency: 10
+
+mzhl:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    host: localhost
+    port: 3306
+    database: coffee
+    username: root
+    password: your-mysql-password
+
+  alioss:
+    endpoint: oss-cn-beijing.aliyuncs.com
+    access-key-id: your-oss-access-key-id
+    access-key-secret: your-oss-access-key-secret
+    bucket-name: your-bucket-name
+
+  redis:
+    host: localhost
+    port: 6379
+    database: 10
+
+  wechat:
+    appid: your-wechat-appid
+    secret: your-wechat-secret
+    mchId: your-mch-id
+    mchSerialNo: your-mch-serial-no
+    privateKeyFilePath: your-apiclient-key.pem-path
+    apiV3Key: your-api-v3-key
+    notifyUrl: your-notify-url
+    refundNotifyUrl: your-refund-notify-url
+
+  shop:
+    address: 麦子黄了·总店
+
+  baidu:
+    ak: your-baidu-ak
+
+  openai:
+    api-key: your-openai-api-key
+    base-url: https://api.deepseek.com

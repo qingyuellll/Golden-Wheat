@@ -1,0 +1,82 @@
+server:
+  port: 8080
+
+# ... existing code ...
+spring:
+  profiles:
+    active: dev
+  main:
+    allow-circular-references: true
+  ai:
+    openai:
+      api-key: ${mzhl.openai.api-key}
+      base-url: ${mzhl.openai.base-url:https://api.openai.com/v1}
+      chat:
+        options:
+          model: deepseek-chat
+      timeout: 60000
+      connect-timeout: 10000
+      read-timeout: 60000
+
+
+
+
+
+mybatis:
+  #mapper配置文件
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.mzhl.entity
+  configuration:
+    #开启驼峰命名
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    com:
+      mzhl:
+        mapper: debug
+        service: info
+        controller: info
+
+mzhl:
+  jwt:
+    # 设置jwt签名加密时使用的秘钥
+    admin-secret-key: permanence-admin-secret-key-for-jwt-2026
+    # 设置jwt过期时间
+    admin-ttl: 43200000
+    # 设置前端传递过来的令牌名称
+    admin-token-name: token
+
+    # 设置jwt签名加密时使用的秘钥
+    user-secret-key: tulip-user-secret-key-for-jwt-2026
+    # 设置jwt过期时间
+    user-ttl: 7200000
+    # 用户端刷新令牌有效期（1天）
+    user-refresh-ttl: 86400000
+    # 设置前端传递过来的令牌名称
+    user-token-name: authentication
+
+  alioss:
+    endpoint: ${mzhl.alioss.endpoint}
+    access-key-id: ${mzhl.alioss.access-key-id}
+    access-key-secret: ${mzhl.alioss.access-key-secret}
+    bucket-name: ${mzhl.alioss.bucket-name}
+
+  wechat:
+    appid: ${mzhl.wechat.appid}
+    secret: ${mzhl.wechat.secret}
+    mchId: ${mzhl.wechat.mch-id}
+    mchSerialNo: ${mzhl.wechat.mchSerialNo}
+    privateKeyFilePath: ${mzhl.wechat.private-key-path}
+    apiV3Key: ${mzhl.wechat.api-v3-key}
+    weChatPayCertFilePath: ${mzhl.wechat.wechat-pay-cert-path}
+    notifyUrl: ${mzhl.wechat.notify-url}
+    refundNotifyUrl: ${mzhl.wechat.refund-notify-url}
+
+  shop:
+    address: ${mzhl.shop.address}
+    # 每单固定打包费（元），应付金额由服务端按此配置重算，前端传值不采信
+    pack-fee: 3
+
+  baidu:
+    ak: ${mzhl.baidu.ak}

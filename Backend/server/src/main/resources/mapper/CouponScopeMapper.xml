@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mzhl.mapper.CouponScopeMapper">
+
+    <insert id="batchInsert">
+        insert into coupon_scope (type, coupon_id, biz_id)
+        values
+        <foreach collection="list" item="scope" separator=",">
+            (#{scope.type}, #{scope.couponId}, #{scope.bizId})
+        </foreach>
+    </insert>
+
+    <select id="findByCouponId" resultType="com.mzhl.entity.CouponScope">
+        select * from coupon_scope where coupon_id = #{couponId}
+    </select>
+
+</mapper>

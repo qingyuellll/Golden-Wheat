@@ -1,0 +1,85 @@
+# ============================================================
+# Docker / 生产环境配置
+# 激活方式：SPRING_PROFILES_ACTIVE=docker
+#
+# 容器之间用服务名互相访问（mysql / redis / rabbitmq），
+# 所以这里把 localhost 全部换成了服务名，并支持用环境变量覆盖。
+# ============================================================
+spring:
+  datasource:
+    druid:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:coffee}?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+      username: ${MYSQL_USER:root}
+      password: ${MYSQL_PASSWORD:123456}
+
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DATABASE:10}
+      password: ${REDIS_PASSWORD:}
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:rabbitmq}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:mzhl}
+    password: ${RABBITMQ_PASSWORD:mzhl123456}
+    virtual-host: /
+    listener:
+      simple:
+        prefetch: 1
+        concurrency: 3
+        max-concurrency: 10
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:your-openai-api-key}
+      base-url: ${OPENAI_BASE_URL:https://api.deepseek.com}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:deepseek-chat}
+      timeout: 60000
+      connect-timeout: 10000
+      read-timeout: 60000
+
+mzhl:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    host: ${MYSQL_HOST:mysql}
+    port: ${MYSQL_PORT:3306}
+    database: ${MYSQL_DATABASE:coffee}
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:123456}
+
+  redis:
+    host: ${REDIS_HOST:redis}
+    port: ${REDIS_PORT:6379}
+    database: ${REDIS_DATABASE:10}
+
+  # 阿里云 OSS：用于后台上传菜品图片，没配也能启动，只是上传图片会失败
+  alioss:
+    endpoint: ${ALIOSS_ENDPOINT:oss-cn-beijing.aliyuncs.com}
+    access-key-id: ${ALIOSS_ACCESS_KEY_ID:your-oss-access-key-id}
+    access-key-secret: ${ALIOSS_ACCESS_KEY_SECRET:your-oss-access-key-secret}
+    bucket-name: ${ALIOSS_BUCKET:tulip-mzhl-itcast}
+
+  # 微信支付/小程序：没有真实商户号时保持占位值即可，下单走"跳过支付"流程
+  wechat:
+    appid: ${WECHAT_APPID:wxa69cefdf7eaba82a}
+    secret: ${WECHAT_SECRET:b2ca29206cf9e833371b80dc1279d27b}
+    mchId: ${WECHAT_MCH_ID:1}
+    mchSerialNo: ${WECHAT_MCH_SERIAL_NO:1}
+    privateKeyFilePath: ${WECHAT_PRIVATE_KEY_PATH:/app/certs/apiclient_key.pem}
+    apiV3Key: ${WECHAT_API_V3_KEY:1}
+    weChatPayCertFilePath: ${WECHAT_PAY_CERT_PATH:/app/certs/wechatpay_platform_cert.pem}
+    notifyUrl: ${WECHAT_NOTIFY_URL:http://127.0.0.1:8080/notify/paySuccess}
+    refundNotifyUrl: ${WECHAT_REFUND_NOTIFY_URL:http://127.0.0.1:8080/notify/refundSuccess}
+
+  shop:
+    address: ${SHOP_ADDRESS:麦子黄了·总店}
+    pack-fee: ${SHOP_PACK_FEE:3}
+
+  # 百度地图 AK：地址解析用，没配不影响启动
+  baidu:
+    ak: ${BAIDU_AK:1}

@@ -1,0 +1,170 @@
+# ============================================================
+# 麦子黄了 —— 一键部署编排
+#
+#   docker compose up -d --build     启动全套
+#   docker compose logs -f backend   看后端日志
+#   docker compose down              停止（保留数据）
+#   docker compose down -v           停止并清空数据库
+#
+# 访问入口：
+#   管理后台   http://localhost:8082   （admin / 123456）
+#   用户点餐端 http://localhost:8000
+#   后端 API   http://localhost:8080
+# ============================================================
+name: golden-wheat
+
+services:
+  # ---------------- MySQL ----------------
+  mysql:
+    image: mysql:8.0
+    container_name: gw-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-coffee}
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+      - --default-time-zone=+08:00
+      - --lower-case-table-names=0
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # 首次启动（数据卷为空）时自动建表 + 灌种子数据
+      - ./deploy/mysql-init:/docker-entrypoint-initdb.d:ro
+    # 如果本机已经装了 MySQL 占着 3306，就别开下面这两行
+    # ports:
+    #   - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-123456}"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 40s
+    networks: [gw-net]
+
+  # ---------------- Redis ----------------
+  redis:
+    image: redis:7-alpine
+    container_name: gw-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks: [gw-net]
+
+  # ---------------- RabbitMQ ----------------
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: gw-rabbitmq
+    restart: unless-stopped
+    environment:
+      # 注意：默认 guest 账号只能在 localhost 登录，
+      # 容器之间访问会被拒绝，所以这里必须自定义用户。
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-mzhl}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-mzhl123456}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    # 需要看队列消息时打开管理台：http://localhost:15672
+    # ports:
+    #   - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    networks: [gw-net]
+
+  # ---------------- 后端 Spring Boot ----------------
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    image: golden-wheat/backend:latest
+    container_name: gw-backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      TZ: Asia/Shanghai
+      JAVA_OPTS: ${JAVA_OPTS:--Xms256m -Xmx512m}
+
+      MYSQL_HOST: mysql
+      MYSQL_PORT: "3306"
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-coffee}
+      MYSQL_USER: root
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_DATABASE: "10"
+
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USER: ${RABBITMQ_USER:-mzhl}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-mzhl123456}
+
+      # AI 客服（DeepSeek 兼容 OpenAI 协议）
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-your-openai-api-key}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.deepseek.com}
+      OPENAI_MODEL: ${OPENAI_MODEL:-deepseek-chat}
+
+      # 阿里云 OSS（上传菜品图片用，可不填）
+      ALIOSS_ENDPOINT: ${ALIOSS_ENDPOINT:-oss-cn-beijing.aliyuncs.com}
+      ALIOSS_ACCESS_KEY_ID: ${ALIOSS_ACCESS_KEY_ID:-your-oss-access-key-id}
+      ALIOSS_ACCESS_KEY_SECRET: ${ALIOSS_ACCESS_KEY_SECRET:-your-oss-access-key-secret}
+      ALIOSS_BUCKET: ${ALIOSS_BUCKET:-tulip-mzhl-itcast}
+
+      SHOP_ADDRESS: ${SHOP_ADDRESS:-麦子黄了·总店}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    networks: [gw-net]
+
+  # ---------------- 管理后台 ----------------
+  admin-web:
+    build:
+      context: ./Frontend/admin
+      dockerfile: Dockerfile
+    image: golden-wheat/admin-web:latest
+    container_name: gw-admin-web
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${ADMIN_PORT:-8082}:80"
+    networks: [gw-net]
+
+  # ---------------- 用户点餐端 ----------------
+  user-web:
+    build:
+      context: ./Frontend/user-web
+      dockerfile: Dockerfile
+    image: golden-wheat/user-web:latest
+    container_name: gw-user-web
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${USER_WEB_PORT:-8000}:80"
+    networks: [gw-net]
+
+volumes:
+  mysql-data:
+  redis-data:
+  rabbitmq-data:
+
+networks:
+  gw-net:
+    driver: bridge
