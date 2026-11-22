@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send, Bot, User } from 'lucide-react'
+import { Send, Bot, User, Square } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -18,12 +18,17 @@ export function ChatPage() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+  // 流式请求的 AbortController：组件卸载 / 停止按钮用
+  const abortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages])
+
+  // 卸载时中断流，防止内存泄漏与跨页面 setState
+  useEffect(() => () => abortRef.current?.abort(), [])
 
   const handleSend = useCallback(async () => {
     const text = input.trim()
@@ -33,18 +38,49 @@ export function ChatPage() {
     setInput('')
     setLoading(true)
 
+    const controller = new AbortController()
+    abortRef.current = controller
+
+    // 先放一个空的 assistant 气泡，增量分片直接往里追加（打字机效果）
+    setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
+
+    const appendToken = (token: string) => {
+      setMessages((prev) => {
+        const next = [...prev]
+        const last = next[next.length - 1]
+        if (last && last.role === 'assistant') {
+          next[next.length - 1] = { ...last, content: last.content + token }
+        }
+        return next
+      })
+    }
+
     try {
-      const answer = await chatApi.send(text)
-      setMessages((prev) => [...prev, { role: 'assistant', content: answer }])
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: '抱歉，服务暂时不可用，请稍后再试。' },
-      ])
+      await chatApi.stream(text, appendToken, controller.signal)
+    } catch (err) {
+      // 用户主动停止不算错误；其余情况把空气泡替换成失败提示
+      if ((err as Error).name !== 'AbortError') {
+        setMessages((prev) => {
+          const next = [...prev]
+          const last = next[next.length - 1]
+          const fallback = '抱歉，服务暂时不可用，请稍后再试。'
+          if (last && last.role === 'assistant' && last.content === '') {
+            next[next.length - 1] = { ...last, content: fallback }
+          } else if (!last || last.role !== 'assistant') {
+            next.push({ role: 'assistant', content: fallback })
+          }
+          return next
+        })
+      }
     } finally {
       setLoading(false)
+      abortRef.current = null
     }
   }, [input, loading])
+
+  const handleStop = useCallback(() => {
+    abortRef.current?.abort()
+  }, [])
 
   if (!isAuth) {
     return (
@@ -53,6 +89,11 @@ export function ChatPage() {
       </div>
     )
   }
+
+  // 首个 token 还没到时显示"思考中"，到了之后气泡自己会增长
+  const lastMsg = messages[messages.length - 1]
+  const waitingFirstToken =
+    loading && (!lastMsg || lastMsg.role !== 'assistant' || lastMsg.content === '')
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
@@ -103,7 +144,7 @@ export function ChatPage() {
                 </div>
               </div>
             ))}
-            {loading && (
+            {waitingFirstToken && (
               <div className="flex gap-3">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-secondary-soft text-secondary">
                   <Bot size={16} strokeWidth={1.5} />
@@ -126,14 +167,25 @@ export function ChatPage() {
               disabled={loading}
               className="flex-1"
             />
-            <Button
-              size="icon"
-              disabled={loading || !input.trim()}
-              onClick={handleSend}
-              aria-label="发送"
-            >
-              <Send size={16} strokeWidth={1.5} />
-            </Button>
+            {loading ? (
+              <Button
+                size="icon"
+                onClick={handleStop}
+                aria-label="停止生成"
+                variant="secondary"
+              >
+                <Square size={14} strokeWidth={1.5} />
+              </Button>
+            ) : (
+              <Button
+                size="icon"
+                disabled={!input.trim()}
+                onClick={handleSend}
+                aria-label="发送"
+              >
+                <Send size={16} strokeWidth={1.5} />
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

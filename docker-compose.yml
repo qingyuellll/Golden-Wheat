@@ -118,7 +118,15 @@ services:
       ALIOSS_ENDPOINT: ${ALIOSS_ENDPOINT:-oss-cn-beijing.aliyuncs.com}
       ALIOSS_ACCESS_KEY_ID: ${ALIOSS_ACCESS_KEY_ID:-your-oss-access-key-id}
       ALIOSS_ACCESS_KEY_SECRET: ${ALIOSS_ACCESS_KEY_SECRET:-your-oss-access-key-secret}
-      ALIOSS_BUCKET: ${ALIOSS_BUCKET:-tulip-mzhl-itcast}
+      ALIOSS_BUCKET: ${ALIOSS_BUCKET:-your-bucket-name}
+
+      # 微信小程序 / 微信支付（没有就留空）
+      WECHAT_APPID: ${WECHAT_APPID:-}
+      WECHAT_SECRET: ${WECHAT_SECRET:-}
+
+      # JWT 签名密钥（务必换成自己的随机值，>=32 位）
+      JWT_ADMIN_SECRET: ${JWT_ADMIN_SECRET:-change-me-admin-secret-key-please-override}
+      JWT_USER_SECRET: ${JWT_USER_SECRET:-change-me-user-secret-key-please-override}
 
       SHOP_ADDRESS: ${SHOP_ADDRESS:-麦子黄了·总店}
     depends_on:

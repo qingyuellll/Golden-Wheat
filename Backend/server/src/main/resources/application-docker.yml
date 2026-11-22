@@ -62,12 +62,12 @@ mzhl:
     endpoint: ${ALIOSS_ENDPOINT:oss-cn-beijing.aliyuncs.com}
     access-key-id: ${ALIOSS_ACCESS_KEY_ID:your-oss-access-key-id}
     access-key-secret: ${ALIOSS_ACCESS_KEY_SECRET:your-oss-access-key-secret}
-    bucket-name: ${ALIOSS_BUCKET:tulip-mzhl-itcast}
+    bucket-name: ${ALIOSS_BUCKET:your-bucket-name}
 
   # 微信支付/小程序：没有真实商户号时保持占位值即可，下单走"跳过支付"流程
   wechat:
-    appid: ${WECHAT_APPID:wxa69cefdf7eaba82a}
-    secret: ${WECHAT_SECRET:b2ca29206cf9e833371b80dc1279d27b}
+    appid: ${WECHAT_APPID:}
+    secret: ${WECHAT_SECRET:}
     mchId: ${WECHAT_MCH_ID:1}
     mchSerialNo: ${WECHAT_MCH_SERIAL_NO:1}
     privateKeyFilePath: ${WECHAT_PRIVATE_KEY_PATH:/app/certs/apiclient_key.pem}

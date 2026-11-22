@@ -25,7 +25,7 @@ hub.docker.com         → 连接失败（000）
 
 **结论**：登录只在你需要 `docker push` 到 Docker Hub 时才有用。你自己打包发布，完全可以跳过登录（Docker Desktop 登录框上点 *Continue without signing in* / 关掉即可）。
 
-**已经帮你做了什么**：在 `C:\Users\qingyuellll\.docker\daemon.json` 里配了 4 个国内镜像加速器并重启了 Docker Desktop，现在 `docker pull mysql:8.0`、`redis:7-alpine` 都能正常拉下来，**这就是打包部署真正需要的能力**。
+**已经帮你做了什么**：在本机 Docker 配置文件（Windows：`%USERPROFILE%\.docker\daemon.json`，macOS/Linux：`~/.docker/daemon.json`）里配了 4 个国内镜像加速器并重启了 Docker Desktop，现在 `docker pull mysql:8.0`、`redis:7-alpine` 都能正常拉下来，**这就是打包部署真正需要的能力**。
 
 > 注意：加速器只解决「拉镜像」。如果你仍然想登进 Docker Hub 账号，还是得让 `hub.docker.com` 可达（公司代理 / 科学上网工具），否则照样登不上。这不影响部署。
 
